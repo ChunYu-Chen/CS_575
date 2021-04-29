@@ -211,8 +211,7 @@ void Watcher(unsigned int* seed)
 		
 		ofstream outfile;
 		outfile.open("result.csv",ios::app);	
-		outfile << Day++ << ','
-			<< NowYear*12 + NowMonth << ',' 
+		outfile << ++Day << ',' 
 			<< (5./9.)*(NowTemp-32) << ',' 
 			<< NowPrecip*2.54 << ',' 
 			<< NowHeight*2.54 << ',' 
