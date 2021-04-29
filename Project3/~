@@ -1,0 +1,174 @@
+int	NowYear;		// 2021 - 2026
+int	NowMonth;		// 0 - 11
+
+float	NowPrecip;		// inches of rain per month
+float	NowTemp;		// temperature this month
+float	NowHeight;		// grain height in inches
+int	NowNumDeer;		// number of deer in the current population
+
+const float GRAIN_GROWS_PER_MONTH =		9.0;
+const float ONE_DEER_EATS_PER_MONTH =		1.0;
+
+const float AVG_PRECIP_PER_MONTH =		7.0;	// average
+const float AMP_PRECIP_PER_MONTH =		6.0;	// plus or minus
+const float RANDOM_PRECIP =			2.0;	// plus or minus noise
+
+const float AVG_TEMP =				60.0;	// average
+const float AMP_TEMP =				20.0;	// plus or minus
+const float RANDOM_TEMP =			10.0;	// plus or minus noise
+
+const float MIDTEMP =				40.0;
+const float MIDPRECIP =				10.0;
+
+unsigned int seed = 0;
+
+float Ranf(unsigned int* seedp, float low, float high)
+{
+    float r = (float)rand_r(seedp); // 0-RAND_MAX
+    return (low + r * (high - low) / (float)RAND_MAX);
+}
+
+int Ranf(unsigned int* seedp, int ilow, int ihigh)
+{
+    float low = (float)ilow;
+    float high = (float)ihigh + 0.9999f;
+    return (int)(Ranf(seedp, low, high));
+}
+
+float SQR(float x)
+{
+    return x * x;
+}
+
+float setAngle(int CurrentMonth)
+{
+    return (30. * (float)CurrentMonth + 15.) * (M_PI / 180.);
+}
+
+float setPrecip(unsigned int* seed, float angle)
+{
+    float precip = AVG_PRECIP_PER_MONTH + AMP_PRECIP_PER_MONTH * sin(angle);
+    precip += Ranf(seed, -RANDOM_PRECIP, RANDOM_PRECIP);
+    if (precip < 0.)
+    	precip = 0.;
+    return precip;
+}
+
+float setTemp(unsigned int* seed, float angle)
+{
+    float temp = AVG_TEMP - AMP_TEMP * cos(angle);
+    return (temp + Ranf(seed, -RANDOM_TEMP, RANDOM_TEMP));
+}
+
+void Deer()
+{
+}
+
+void Grain(unsigned int* seed)
+{
+	while (NowYear < 2027)
+     	{
+		float tempFactor = exp(-SQR((NowTemp - MIDTEMP) / 10.));
+		float precipFactor = exp(-SQR((NowPrecip - MIDPRECIP) / 10.));
+		float newHeight = NowHeight;
+		newHeight += tempFactor * precipFactor * GRAIN_GROWS_PER_MONTH;
+		newHeight -= (float)NowNumDeer * ONE_DEER_EATS_PER_MONTH;
+		if (newHeight < 0)
+		    newHeight = 0.;
+
+		#pragma omp barrier
+
+		NowHeight = newHeight;
+
+		#pragma omp barrier
+
+
+		#pragma omp barrier
+
+
+		#pragma omp barrier
+    	}
+}
+
+void Watcher(unsigned int* seed)
+{
+	while (NowYear < 2027)
+    	{
+
+	#pragma omp barrier
+
+
+	#pragma omp barrier
+
+
+	#pragma omp barrier
+
+
+        fprintf(stderr, "Year: %d, Month %d\n Temperature:     %.2f\n Precipitation:   %.2f\n Grain Height:    %.2f\n Number of Deer:  %d\n Deer Hunted:     %d\n\n", NowYear, NowMonth, NowTemp, NowPrecip, NowHeight, NowNumDeer, NowHunted);
+        NowMonth++;
+        if (NowMonth == 12) {
+            NowMonth = 0;
+            NowYear++;
+        }
+       
+        float ang = setAngle(NowMonth);
+        NowTemp = setTemp(seed, ang);
+        NowPrecip = setPrecip(seed, ang);
+      
+	#pragma omp barrier
+    }
+}
+
+void MyAgen()
+{
+}
+
+
+
+int main()
+{
+
+	// starting date and time:
+	NowMonth =    0;
+	NowYear  = 2021;
+	
+	// starting state (feel free to change this if you want):
+	NowNumDeer = 1;
+	NowHeight =  1.;
+	#ifndef _OPENMP
+    		fprintf(stderr, "OpenMP is not supported on this machine. \n");
+    		return 1;
+	#endif	
+	
+	float ang = setAngle(NowMonth);
+	
+	NowTemp = setTemp(&seed, ang);
+	
+	NowPrecip = setPrecip(&seed, ang);
+
+	omp_set_num_threads( 4 );	// same as # of sections
+	
+	#pragma omp parallel sections
+	{
+		#pragma omp section
+		{
+			Deer(&seed);
+		}
+
+		#pragma omp section
+		{
+			Grain(&seed);
+		}
+
+		#pragma omp section
+		{
+			Watcher(&seed);
+		}
+
+		#pragma omp section
+		{
+			MyAgent(&seed);	// your own
+		}
+	}       // implied barrier -- all functions must return in order
+	// to allow any of them to get past here
+}
