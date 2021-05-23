@@ -81,6 +81,7 @@ main( int argc, char *argv[ ] )
 	float *hA = new float[ NUM_ELEMENTS ];
 	float *hB = new float[ NUM_ELEMENTS ];
 	float *hC = new float[ NUM_ELEMENTS ];
+	float *hD = new float[ NUM_ELEMENTS ];
 
 	// fill the host memory buffers:
 
@@ -161,7 +162,7 @@ main( int argc, char *argv[ ] )
 	// 8. compile and link the kernel code:
 
 	//char *options = { "" } ;
-	char *options =  { (char *) ""  };	
+	char *options =  { (char *) ""  };
 	status = clBuildProgram( program, 1, &device, options, NULL, NULL );
 	if( status != CL_SUCCESS )
 	{
@@ -256,10 +257,12 @@ main( int argc, char *argv[ ] )
 	clReleaseMemObject(     dA  );
 	clReleaseMemObject(     dB  );
 	clReleaseMemObject(     dC  );
+	clReleaseMemObject(     dD  );
 
 	delete [ ] hA;
 	delete [ ] hB;
 	delete [ ] hC;
+	delete [ ] hD;
 
 	return 0;
 }

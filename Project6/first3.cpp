@@ -82,7 +82,7 @@ main( int argc, char *argv[ ] )
 	float *hA = new float[ NUM_ELEMENTS ];
 	float *hB = new float[ NUM_ELEMENTS ];
 	float *hC = new float[ numWorkGroups ];
-
+	
 	// fill the host memory buffers:
 
 	for( int i = 0; i < NUM_ELEMENTS; i++ )
@@ -91,7 +91,7 @@ main( int argc, char *argv[ ] )
 	}
 
 	size_t abSize = NUM_ELEMENTS * sizeof(float);
-        size_t cSize = numWorkGroups * sizeof(float);
+    size_t cSize = numWorkGroups * sizeof(float);
 
 	// 3. create an opencl context:
 
@@ -214,26 +214,25 @@ main( int argc, char *argv[ ] )
         status = clEnqueueReadBuffer( cmdQueue, dC, CL_TRUE, 0, cSize, hC, 0, NULL, NULL );
 	if( status != CL_SUCCESS )
 			fprintf( stderr, "clEnqueueReadBuffer failed (3)\n" );
-        Wait( cmdQueue );
+    Wait( cmdQueue );
 
-        float sum = 0.;
-        for( int i = 0; i < NUM_WORK_GROUPS; i++)
-            sum += hC[i];
+    float sum = 0.;
+    for( int i = 0; i < NUM_WORK_GROUPS; i++)
+        sum += hC[i];
 
 	// did it work?
-	/*
+	
 	for( int i = 0; i < NUM_ELEMENTS; i++ )
 	{
 		float expected = hA[i] * hB[i];
 		if( fabs( hC[i] - expected ) > TOL )
 		{
-			fprintf( stderr, "%4d: %13.6f * %13.6f wrongly produced %13.6f instead of %13.6f (%13.8f)\n",
-				i, hA[i], hB[i], hC[i], expected, fabs(hC[i]-expected) );
-			fprintf( stderr, "%4d:    0x%08x *    0x%08x wrongly produced    0x%08x instead of    0x%08x\n",
-				i, LookAtTheBits(hA[i]), LookAtTheBits(hB[i]), LookAtTheBits(hC[i]), LookAtTheBits(expected) );
+			//fprintf( stderr, "%4d: %13.6f * %13.6f wrongly produced %13.6f instead of %13.6f (%13.8f)\n",
+				//i, hA[i], hB[i], hC[i], expected, fabs(hC[i]-expected) );
+			//fprintf( stderr, "%4d:    0x%08x *    0x%08x wrongly produced    0x%08x instead of    0x%08x\n",
+				//i, LookAtTheBits(hA[i]), LookAtTheBits(hB[i]), LookAtTheBits(hC[i]), LookAtTheBits(expected) );
 		}
 	}
-	*/
 
 	fprintf( stderr, "%8d\t%4d\t%10d\t%10.3lf MegaMultsPerSecond\n",
 		NUM_ELEMENTS, LOCAL_SIZE, NUM_WORK_GROUPS, (double)NUM_ELEMENTS/(time1-time0)/1000000. );
