@@ -12,12 +12,12 @@
 
 // setting the number of threads:
 #ifndef NUMT
-#define NUMT		    2
+#define NUMT		    8
 #endif
 
 // setting the number of trials in the monte carlo simulation:
 #ifndef NUMTRIALS
-#define NUMTRIALS	50000
+#define NUMTRIALS	500000
 #endif
 
 // how many tries to discover the maximum performance:
@@ -118,7 +118,7 @@ main( int argc, char *argv[ ] )
 			{
 				// see if the ball hits the vertical cliff face:
 				t = g / vx;
-				float y = vy * t - 4.9*t*t;
+				float y = vy * t + 0.5*GRAVITY*t*t;
 				if( y <= h )
 				{
 					if( DEBUG )	fprintf( stderr, "Ball hits the cliff face\n" );
@@ -131,7 +131,7 @@ main( int argc, char *argv[ ] )
 					// where 'a' multiplies time^2
 					//       'b' multiplies time
 					//       'c' is a constant
-					float a = -4.9;
+					float a = 0.5 * GRAVITY;
 					float b = vy;
 					float c = -h;
 					float disc = b*b - 4.f*a*c;	// quadratic formula discriminant

@@ -111,11 +111,14 @@ MonteCarlo( float *dvs, float *dths, float *dgs, float *dhs, float *dds, int *dh
                         float c = -h;
                         float disc = b*b - 4.f*a*c;	// quadratic formula discriminant
 
-                        // successfully hits the ground above the cliff:
-                        // get the intersection:
-                        disc = sqrtf( disc );
-                        float t1 = (-b + disc ) / ( 2.f*a );	// time to intersect high ground
-                        float t2 = (-b - disc ) / ( 2.f*a );	// time to intersect high ground
+                        if( disc > 0. )
+                        {
+                                // successfully hits the ground above the cliff:
+                                // get the intersection:
+                                disc = sqrtf( disc );
+                                float t1 = (-b + disc ) / ( 2.f*a );	// time to intersect high ground
+                                float t2 = (-b - disc ) / ( 2.f*a );	// time to intersect high ground
+                        }
                         // only care about the second intersection
                         float tmax = t1;
                         if( t2 > t1 )
