@@ -17,25 +17,25 @@ using namespace std;
 #define NUMTRIES	100
 #endif
 
-float SimdMulSum( float *a, float *b, int len );
-float nonSimdMulSum(float * a, float * b, int len);
+void SimdMul( float *a, float *b, float *c, int len );
+void nonSimdMul(float * a, float * b, float *c, int len);
 float * Generate_Array(int Size);
 
 int main(){
     float *a = Generate_Array(ARRAY_SIZE);
     float *b = Generate_Array(ARRAY_SIZE);
-    //float *c = Generate_Array(ARRAY_SIZE);
+    float *c = Generate_Array(ARRAY_SIZE);
    
     float MaxSIMDPerformance = .0;
     float MaxNonSIMDPerformance = .0;
     
     for(int i = 0; i < NUMTRIES; i++ ){    
     	double time0 = omp_get_wtime();
-		SimdMulSum(a, b, ARRAY_SIZE);           
+	SimdMul(a, b, c, ARRAY_SIZE);           
         double time1 = omp_get_wtime();
 		
-		double time3 = omp_get_wtime();
-        nonSimdMulSum(a, b, ARRAY_SIZE);
+	double time3 = omp_get_wtime();
+        nonSimdMul(a, b, c, ARRAY_SIZE);
         double time4 = omp_get_wtime();
 
         double MegaMulsPerSecond_SIMD = (double)ARRAY_SIZE / (time1 - time0) / 1000000.0;
@@ -74,7 +74,7 @@ int main(){
     delete[] b;
     return 0;
 }
-
+/*
 float SimdMulSum( float *a, float *b, int len )
 {
 	float sum[4] = { 0., 0., 0., 0. };
@@ -109,7 +109,7 @@ float nonSimdMulSum(float * a, float * b, int len){
 }
 
 
-/*
+
 void SimdMul( float *a, float *b,   float *c,   int len )
 {
 	int limit = ( len/SSE_WIDTH ) * SSE_WIDTH;
@@ -129,8 +129,9 @@ void SimdMul( float *a, float *b,   float *c,   int len )
 		c[i] = a[i] * b[i];
 	}
 }
+*/
 
-void nonSimdMulSum(float * a, float * b, float * c,int len){
+void nonSimdMul(float * a, float * b, float * c,int len){
     //float sum[4] = { 0., 0., 0., 0. };
 
     for( int i = 0; i < len; i++){
@@ -170,7 +171,7 @@ SimdMul( float *a, float *b, float *c, int len )
 		c[ i ] = a[ i ] * b[ i ];
 	}
 }
-*/
+
 
 float * Generate_Array(int Size){
     srand(time(0));

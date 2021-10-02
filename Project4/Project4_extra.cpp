@@ -23,14 +23,15 @@ using namespace std;
 #define NUMTRIES	100
 #endif
 
-float SimdMulSum( float *a, float *b, int len );
-float nonSimdMulSum(float * a, float * b, int len);
+void SimdMul( float *a, float *b, float *c, int len );
+void nonSimdMul(float * a, float * b, float *c, int len);
 float * Generate_Array(int Size);
 
 int main(){
     float *a = Generate_Array(ARRAY_SIZE);
     float *b = Generate_Array(ARRAY_SIZE);
-    
+    float *c = Generate_Array(ARRAY_SIZE);
+
     omp_set_num_threads(NUMT);
     
     float MaxSIMDPerformance = .0;
@@ -41,7 +42,7 @@ int main(){
         #pragma omp parallel
         {
             int first = omp_get_thread_num( ) * NUM_ELEMENTS_PER_CORE;
-            SimdMulSum(&a[first], &b[first], NUM_ELEMENTS_PER_CORE);
+            SimdMul(&a[first], &b[first], &c[first], NUM_ELEMENTS_PER_CORE);
         }
         double time1 = omp_get_wtime();
         
@@ -51,7 +52,7 @@ int main(){
 		}
 
         double time3 = omp_get_wtime();
-        nonSimdMulSum(a, b, ARRAY_SIZE);
+        nonSimdMul(a, b, c, ARRAY_SIZE);
         double time4 = omp_get_wtime();
         
         double MegaMulsPerSecond_nonSIMD = (float)ARRAY_SIZE / (time4 - time3) / 1000000.0;
@@ -73,38 +74,44 @@ int main(){
     return 0;
 }
 
-float
-SimdMulSum( float *a, float *b, int len )
+void
+SimdMul( float *a, float *b, float *c, int len )
 {
-	float sum[4] = { 0., 0., 0., 0. };
 	int limit = ( len/SSE_WIDTH ) * SSE_WIDTH;
-	register float *pa = a;
-	register float *pb = b;
-    
-	__m128 ss = _mm_loadu_ps( &sum[0] );
+	__asm
+	(
+		".att_syntax\n\t"
+		"movq -24(%rbp), %r8\n\t" // a
+		"movq -32(%rbp), %rcx\n\t" // b
+		"movq -40(%rbp), %rdx\n\t" // c
+	);
 	for( int i = 0; i < limit; i += SSE_WIDTH )
 	{
-		ss = _mm_add_ps( ss, _mm_mul_ps( _mm_loadu_ps( pa ), _mm_loadu_ps( pb ) ) );
-		pa += SSE_WIDTH;
-		pb += SSE_WIDTH;
+		__asm
+		(
+			".att_syntax\n\t"
+			"movups (%r8), %xmm0\n\t" // load the first sse register
+			"movups (%rcx), %xmm1\n\t" // load the second sse register
+			"mulps %xmm1, %xmm0\n\t" // do the multiply
+			"movups %xmm0, (%rdx)\n\t" // store the result
+			"addq $16, %r8\n\t"
+			"addq $16, %rcx\n\t"
+			"addq $16, %rdx\n\t"
+		);
 	}
-	_mm_storeu_ps( &sum[0], ss );
 
 	for( int i = limit; i < len; i++ )
 	{
-		sum[0] += a[i] * b[i];
+		c[ i ] = a[ i ] * b[ i ];
 	}
-
-	return sum[0] + sum[1] + sum[2] + sum[3];
 }
 
-float nonSimdMulSum(float * a, float * b, int len){
-    float sum = 0.;
-    //#pragma omp parallel for reduction(+:sum)
+void nonSimdMul(float * a, float * b, float * c,int len){
+    //float sum[4] = { 0., 0., 0., 0. };
+
     for( int i = 0; i < len; i++){
-        sum += a[i] * b[i];
+        c[i] += a[i] * b[i];
     }
-   return sum;
 }
 
 float * Generate_Array(int Size){
